@@ -5,18 +5,18 @@ import (
 	"os"
 )
 
-func RyadProv(board [9][9]int, ryad, k int) bool {
+func StrokProv(board [9][9]int, strok, k int) bool { //notworkin
 	for i := 0; i < 9; i++ {
-		if board[ryad][i] == k {
+		if board[i][strok] == k {
 			return false
 		}
 	}
 	return true
 }
 
-func StrokProv(board [9][9]int, strok, k int) bool {
+func RyadProv(board [9][9]int, ryad, k int) bool { //notworkin
 	for i := 0; i < 9; i++ {
-		if board[i][strok] == k {
+		if board[ryad][i] == k {
 			return false
 		}
 	}
@@ -36,7 +36,7 @@ func ProverB(board [9][9]int, ryad, strok, k int) bool { //you gotta check the b
 	return true
 }
 
-func BoardSolv(board *[9][9]int) bool {
+func BoardSolv(board *[9][9]int) bool { 
 	ryad := 0
 	strok := 0
 
