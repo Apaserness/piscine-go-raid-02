@@ -23,6 +23,7 @@ func RyadProv(board [9][9]int, ryad, k int) bool { //notworkin
 	return true
 }
 
+
 func ProverB(board [9][9]int, ryad, strok, k int) bool { //you gotta check the board for the er
 	starti := strok - ryad%3
 	startj := strok - strok%3
