@@ -5,31 +5,27 @@ import (
 	"os"
 )
 
-func StrokProv(board [9][9]int, strok, k int) bool { //notworkin
-	for i := 0; i < 9; i++ {
-		if board[i][strok] == k {
+func NormArgs(str string) bool {
+	for i := range str {
+		if !(str[i] == '.' ||(str[i] >= '1' && str[i] <= '9')) {
 			return false
 		}
 	}
 	return true
 }
 
-func RyadProv(board [9][9]int, ryad, k int) bool { //notworkin
-	for i := 0; i < 9; i++ {
-		if board[ryad][i] == k {
+func Parsing(args []string, result *[9][9]int) bool {
+	for i := 1; i < len(args); i++ {
+		if len(args[i]) != 9 {
 			return false
-		}
-	}
-	return true
-}
-
-
-func ProverB(board [9][9]int, ryad, strok, k int) bool { //you gotta check the board for the er
-	starti := strok - ryad%3
-	startj := strok - strok%3
-	for i := starti; i < starti+3; i++ {
-		for j := startj; j < startj+3; j++ {
-			if board[i][j] == k {
+		} else {
+			if NormArgs(args[i]) {
+				for j := 0; j < 9; j++ {
+					if args[i][j] != '.' {
+						result[i-1][j] = int(args[i][j] - 48)
+					}
+				}
+			} else {
 				return false
 			}
 		}
@@ -37,97 +33,140 @@ func ProverB(board [9][9]int, ryad, strok, k int) bool { //you gotta check the b
 	return true
 }
 
-func BoardSolv(board *[9][9]int) bool { 
-	ryad := 0
-	strok := 0
-
-	if IsDone(*board, &ryad, &strok) {
+func Backtrack(result *[9][9]int) bool {
+	if !EmptyCell(*result) {
 		return true
 	}
-	if board[ryad][strok] == 0 {
-		for k := 1; k <= 9; k++ {
-			if RyadProv(*board, ryad, k) && CheckCol(*board, strok, k) && CheckBox(*board, ryad, strok, k) {
-				(*board)[ryad][strok] = k
-				if BoardSolv(board) {
-					return true
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			if result[i][j] == 0 {
+				for k := 1; k <= 9; k++ {
+					result[i][j] = k
+					if isTableValid(*result) {
+						if Backtrack(result) {
+							return true
+						}
+						result[i][j] = 0
+					} else {
+						result[i][j] = 0
+					}
 				}
-				(*board)[ryad][strok] = 0
+				return false
 			}
 		}
 	}
 	return false
 }
 
-func IsDone(board [9][9]int, ryad, strok *int) bool {
-	for i := 0; i < len(board); i++ {
-		for j := 0; j < len(board[i]); j++ {
-			if board[i][j] == 0 {
-				*ryad = i
-				*strok = j
+func revBacktrack(result *[9][9]int) bool {
+	if !EmptyCell(*result) {
+		return true
+	}
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			if result[i][j] == 0 {
+				for k := 9; k >= 1; k-- {
+					result[i][j] = k
+					if isTableValid(*result) {
+						if Backtrack(result) {
+							return true
+						}
+						result[i][j] = 0
+					} else {
+						result[i][j] = 0
+					}
+				}
 				return false
 			}
 		}
 	}
-	return true
+	return false
 }
 
-func GenerateArray(args []string) [9][9]int {
-	var board [9][9]int
-	args = args[1:]
-	for i := 0; i < len(args); i++ {
-		runes := []rune(args[i])
-		for j := 0; j < len(runes); j++ {
-			if runes[j] >= '0' && runes[j] <= '9' {
-				board[i][j] = int(runes[j] - 48)
-			} else if runes[j] == '.' {
-				board[i][j] = 0
+func EmptyCell(result [9][9]int) bool {
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			if result[i][j] == 0 {
+				return true
 			}
 		}
 	}
-	return board
+	return false
 }
 
-func BoardItself(board [9][9]int) {
-	for i := 0; i < len(board); i++ {
-		for j := 0; j < len(board[i]); j++ {
-			fmt.Printf("%v ", board[i][j])
-		}
-		if i < len(board[i])-1 {
-			fmt.Println()
+func HasDuplicate(counter [10]int) bool {
+	for i := 1; i < 10; i++ {
+		if counter[i] > 1 {
+			return true
 		}
 	}
+	return false
 }
 
-func ArgCh(args []string) bool {
-	if len(args) != 10 {
-		return false
+func isTableValid(result [9][9]int) bool {
+	for i := 0; i < 9; i++ {
+		counter := [10]int{}
+		for j := 0; j < 9; j++ {
+			counter[result[i][j]]++
+		}
+		if HasDuplicate(counter) {
+			return false
+		}
 	}
-	for i, a := range args {
-		if i != 0 {
-			runes := []rune(a)
-			if len(a) != 9 {
-				return false
-			}
-			for _, r := range runes {
-				if (r < '1' || r > '9') && r != '.' {
+	for i := 0; i < 9; i++ {
+		counter := [10]int{}
+		for j := 0; j < 9; j++ {
+			counter[result[j][i]]++
+		}
+		if HasDuplicate(counter) {
+			return false
+		}
+	}
+	for i := 0; i < 9; i = i + 3 {
+		for j := 0; j < 9; j = j + 3 {
+			counter := [10]int{}
+			for row := i; row < i+3; row++ {
+				for col := j; col < j+3; col++ {
+					counter[result[row][col]]++
+				}
+				if HasDuplicate(counter) {
 					return false
 				}
 			}
 		}
 	}
 	return true
+
 }
 
 func main() {
-	args := os.Args
-	if !ArgCh(args) {
-		fmt.Println("Error")
-	} else {
-		board := GenerateArray(args)
-		if BoardSolv(&board) {
-			BoardItself(board)
-		} else {
-			fmt.Println("Error")
+
+	arguments := os.Args
+	arglen := len(arguments)
+	if arglen == 10 {
+		var result [9][9]int
+		if Parsing(arguments, &result) {
+			revResult := result
+			if Backtrack(&result) {
+				if revBacktrack(&revResult) {
+					if result == revResult {
+						for i := 0; i < 9; i++ {
+							for j := 0; j < 9; j++ {
+								fmt.Print(result[i][j])
+								if j != 8 {
+									fmt.Print(" ")
+
+								}
+							}
+							fmt.Println()
+						}
+						return
+					}
+				}
+
+			}
+
 		}
 	}
+	fmt.Println("Error")
 }
